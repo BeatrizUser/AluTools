@@ -1,0 +1,222 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alusolda Tools</title>
+  <!-- Importe os arquivos CSS do Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background-image: url("https://alusolda.com.br/wp-content/uploads/2023/07/Capa-site-Alusolda-corte-metais-com-plasma-hypertherm.webp?id=32384");
+      background-size: cover;
+      background-position: center center;
+      font-family: Arial, sans-serif;
+    }
+
+    .blur-container {
+      position: relative;
+      background-color: rgba(255, 255, 255, 0.442); /* Fundo branco com transparência */
+      padding: 30px;
+      border-radius: 10px;
+      text-align: center;
+      overflow: hidden; /* Para esconder o conteúdo do ::before que ficará por trás */
+    }
+
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url("https://alusolda.com.br/wp-content/uploads/2023/07/Capa-site-Alusolda-corte-metais-com-plasma-hypertherm.webp?id=32384");
+      background-size: cover;
+      background-position: center center;
+      filter: blur(5px); /* Aplica o efeito de desfoque na imagem de fundo do pseudo-elemento */
+      z-index: -1; /* Coloca o pseudo-elemento atrás do conteúdo do contêiner */
+    }
+
+    .logo {
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 250px; /* Defina o tamanho da logo da empresa */
+    }
+  </style>
+  </head>
+
+<body class="bg-light">
+  <div class="blur-container">
+    <img class="logo" src="https://alusolda.com.br/wp-content/uploads/2020/02/logo-institucional-305x150-1.png" alt="Logo da Empresa">
+    <div class="container py-5">
+      <h1 class="text-center mb-4">Tabela de Parâmetros de Soldagem</h1>
+      <label for="material-select" class="form-label">Selecione o material:</label>
+      <select id="material-select" class="form-select mb-4">
+        <option value="">Escolha o Material...</option>
+      </select>
+  
+      <div id="parameter-table-wrapper" class="overflow-x-auto d-none">
+        <table id="parameter-table" class="table table-bordered">
+          <thead class="bg-light">
+            <tr>
+              <th class="px-4 py-2">Espessura do Material (mm)</th>
+              <th class="px-4 py-2">Corrente Recomendada (A)</th>
+              <th class="px-4 py-2">Tensão Recomendada (V)</th>
+              <th class="px-4 py-2">Bitola de Arame (mm)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Os dados serão preenchidos dinamicamente com JavaScript -->
+          </tbody>
+        </table>
+      </div>
+  
+      <p id="no-parameter" class="mt-4 d-none">Nenhum parâmetro encontrado para o material selecionado.</p>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Dados dos parâmetros de soldagem
+    const parameters = {
+      carbonSteel: [
+        { espessura: '0,75 / 0,90', corrente: '60 - 90 A', tensao: '15 - 18 V', bitola: '0,8 mm' },
+        { espessura: '1,20', corrente: '80 - 110 A', tensao: '18 - 22 V', bitola: '0,8 mm ou 1,0 mm' },
+        { espessura: '1,60', corrente: '100 - 140 A', tensao: '20 - 24 V', bitola: '1,0 mm ou 1,2 mm' },
+        { espessura: '2,00 / 2,50', corrente: '120 - 160 A', tensao: '22 - 26 V', bitola: '1,2 mm ou 1,6 mm' },
+        { espessura: '3,00 / 3,25', corrente: '140 - 180 A', tensao: '24 - 28 V', bitola: '1,6 mm ou 2,0 mm' },
+        { espessura: '4,80', corrente: '180 - 240 A', tensao: '26 - 30 V', bitola: '1,6 mm ou 2,0 mm' },
+        { espessura: '6,40', corrente: '220 - 280 A', tensao: '28 - 32 V', bitola: '2,0 mm ou 2,4 mm' },
+        { espessura: '8,00', corrente: '260 - 320 A', tensao: '30 - 34 V', bitola: '2,4 mm ou 2,8 mm' },
+        { espessura: '9,50', corrente: '300 - 360 A', tensao: '32 - 36 V', bitola: '2,8 mm ou 3,2 mm' },
+        { espessura: '12,7', corrente: '350 - 420 A', tensao: '34 - 38 V', bitola: '3,2 mm ou 3,6 mm' },
+      ],
+      stainlessSteel: [
+        { espessura: '0,75 / 0,90', corrente: '50 - 80 A', tensao: '15 - 18 V', bitola: '0,8 mm' },
+        { espessura: '1,20', corrente: '70 - 100 A', tensao: '17 - 21 V', bitola: '0,8 mm ou 1,0 mm' },
+        { espessura: '1,60', corrente: '90 - 130 A', tensao: '18 - 22 V', bitola: '1,0 mm ou 1,2 mm' },
+        { espessura: '2,00 / 2,50', corrente: '110 - 150 A', tensao: '20 - 24 V', bitola: '1,2 mm ou 1,6 mm' },
+        { espessura: '3,00 / 3,25', corrente: '130 - 180 A', tensao: '22 - 26 V', bitola: '1,6 mm ou 2,0 mm' },
+        { espessura: '4,80', corrente: '180 - 240 A', tensao: '24 - 28 V', bitola: '1,6 mm ou 2,0 mm' },
+        { espessura: '6,40', corrente: '220 - 280 A', tensao: '26 - 30 V', bitola: '2,0 mm ou 2,4 mm' },
+        { espessura: '8,00', corrente: '260 - 320 A', tensao: '28 - 32 V', bitola: '2,4 mm ou 2,8 mm' },
+        { espessura: '9,50', corrente: '300 - 360 A', tensao: '30 - 34 V', bitola: '2,8 mm ou 3,2 mm' },
+        { espessura: '12,7', corrente: '350 - 420 A', tensao: '32 - 36 V', bitola: '3,2 mm ou 3,6 mm' },
+      ],
+      aluminum: [
+        { espessura: '1,60', corrente: '90 - 130 A', tensao: '15 - 18 V', bitola: '1,0 mm' },
+        { espessura: '2,00 / 2,50', corrente: '120 - 160 A', tensao: '17 - 21 V', bitola: '1,2 mm ou 1,6 mm' },
+        { espessura: '3,00 / 3,25', corrente: '140 - 180 A', tensao: '19 - 23 V', bitola: '1,6 mm ou 2,0 mm' },
+        { espessura: '4,80', corrente: '180 - 240 A', tensao: '21 - 25 V', bitola: '1,6 mm ou 2,0 mm' },
+        { espessura: '6,40', corrente: '220 - 280 A', tensao: '23 - 27 V', bitola: '2,0 mm ou 2,4 mm' },
+        { espessura: '8,00', corrente: '260 - 320 A', tensao: '25 - 29 V', bitola: '2,4 mm ou 2,8 mm' },
+        { espessura: '9,50', corrente: '300 - 360 A', tensao: '27 - 31 V', bitola: '2,8 mm ou 3,2 mm' },
+        { espessura: '12,7', corrente: '350 - 420 A', tensao: '29 - 33 V', bitola: '3,2 mm ou 3,6 mm' },
+      ],
+      tig: [
+        { espessura: '1,6', corrente: '10 - 70 A', tensao: '10 - 16 V', bitola: '1,6 mm' },
+        { espessura: '3,25', corrente: '40 - 140 A', tensao: '12 - 20 V', bitola: '1,6 mm ou 2,4 mm' },
+        { espessura: '4,80', corrente: '70 - 220 A', tensao: '14 - 24 V', bitola: '1,6 mm ou 2,4 mm' },
+        { espessura: '6,40', corrente: '100 - 300 A', tensao: '16 - 28 V', bitola: '2,4 mm ou 3,2 mm' },
+        { espessura: '9,50', corrente: '150 - 400 A', tensao: '20 - 32 V', bitola: '3,2 mm ou 4,8 mm' },
+        { espessura: '12,7', corrente: '200 - 500 A', tensao: '22 - 38 V', bitola: '4,8 mm ou 6,4 mm' },
+      ],
+    };
+
+    // Objeto para traduzir os nomes dos materiais
+    const materialTranslations = {
+      carbonSteel: 'Aço Carbono',
+      stainlessSteel: 'Aço Inoxidável',
+      aluminum: 'Alumínio',
+      tig: 'TIG',
+    };
+
+    // Função para traduzir os nomes dos materiais
+    function translateMaterials() {
+      const translatedMaterials = {};
+      const materialKeys = Object.keys(parameters);
+
+      materialKeys.forEach(key => {
+        translatedMaterials[key] = materialTranslations[key] || key;
+      });
+
+      return translatedMaterials;
+    }
+
+     // Função para popular a tabela com os dados do material selecionado
+    function populateParameterTable(selectedMaterial) {
+      const parameterTable = document.getElementById('parameter-table');
+      const tbody = parameterTable.getElementsByTagName('tbody')[0];
+      tbody.innerHTML = ''; // Limpar a tabela antes de popular com os novos dados
+
+      const selectedMaterialParameters = parameters[selectedMaterial] || [];
+      if (selectedMaterialParameters.length > 0) {
+        selectedMaterialParameters.forEach(parameter => {
+          const row = document.createElement('tr');
+          tbody.appendChild(row);
+
+          ['espessura', 'corrente', 'tensao', 'bitola'].forEach(key => {
+            const td = document.createElement('td');
+            td.classList.add('border', 'border-gray-300', 'px-4', 'py-2');
+            td.textContent = parameter[key];
+            row.appendChild(td);
+          });
+        });
+
+        // Esconder a mensagem de nenhum parâmetro encontrado, se estiver visível
+        const noParameterMsg = document.getElementById('no-parameter');
+        noParameterMsg.classList.remove('block');
+        noParameterMsg.classList.add('d-none');
+
+        // Mostrar a tabela de parâmetros
+        const parameterTableWrapper = document.getElementById('parameter-table-wrapper');
+        parameterTableWrapper.classList.remove('d-none');
+      } else {
+        // Mostrar mensagem de nenhum parâmetro encontrado
+        const noParameterMsg = document.getElementById('no-parameter');
+        noParameterMsg.classList.remove('d-none');
+        noParameterMsg.classList.add('block');
+
+        // Esconder a tabela de parâmetros
+        const parameterTableWrapper = document.getElementById('parameter-table-wrapper');
+        parameterTableWrapper.classList.remove('block');
+        parameterTableWrapper.classList.add('d-none');
+      }
+    }
+
+    // Função para inicializar a página
+    function initializePage() {
+      const materialSelect = document.getElementById('material-select');
+      const translatedMaterials = translateMaterials();
+
+      Object.entries(translatedMaterials).forEach(([key, value]) => {
+        const option = document.createElement('option');
+        option.value = key;
+        option.textContent = value;
+        materialSelect.appendChild(option);
+      });
+
+      // Adicionar um listener para detectar mudanças no dropdown e atualizar a tabela
+      materialSelect.addEventListener('change', function() {
+        const selectedMaterial = materialSelect.value;
+        populateParameterTable(selectedMaterial);
+      });
+
+      // Preencher a tabela com os dados do primeiro material (Aço Carbono)
+      populateParameterTable(materialSelect.value);
+    }
+
+    // Inicializar a página
+    document.addEventListener('DOMContentLoaded', initializePage);
+
+  </script>
+</body>
+</html>
